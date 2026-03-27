@@ -44,7 +44,7 @@ private val DarkColorScheme = darkColorScheme(
 
 @Composable
 fun MixPlannerTheme(
-    darkTheme: Boolean = false,
+    darkTheme: Boolean = true,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
