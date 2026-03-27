@@ -125,11 +125,13 @@ class SearchViewModel : ViewModel() {
                     publishFilteredResults()
                 } else {
                     currentBaseResults = emptyList()
-                    _state.value = SearchState.Error("Aucun cocktail trouvé")
+                    _state.value = SearchState.Error(
+                        "Aucun cocktail ne correspond à \"$cleanQuery\"."
+                    )
                 }
             } catch (e: Exception) {
                 _state.value = SearchState.Error(
-                    e.message ?: "Erreur réseau pendant la recherche par nom"
+                    "Erreur réseau pendant la recherche de \"$cleanQuery\"."
                 )
             }
         }
@@ -151,7 +153,9 @@ class SearchViewModel : ViewModel() {
                 val summaries = response.drinks.orEmpty()
 
                 if (summaries.isEmpty()) {
-                    _state.value = SearchState.Error("Aucun cocktail trouvé pour cet ingrédient")
+                    _state.value = SearchState.Error(
+                        "Aucun cocktail trouvé avec l’ingrédient \"$cleanQuery\". Vérifie l’orthographe ou essaie en anglais."
+                    )
                     return@launch
                 }
 
@@ -171,12 +175,14 @@ class SearchViewModel : ViewModel() {
                     currentBaseResults = detailedDrinks
                     publishFilteredResults()
                 } else {
-                    _state.value = SearchState.Error("Impossible de charger les détails des cocktails")
+                    _state.value = SearchState.Error(
+                        "Des cocktails ont été trouvés pour \"$cleanQuery\", mais leurs détails n’ont pas pu être chargés."
+                    )
                 }
             } catch (e: Exception) {
-                _state.value = SearchState.Error(
-                    e.message ?: "Erreur réseau pendant la recherche par ingrédient"
-                )
+                    _state.value = SearchState.Error(
+                        "Erreur réseau pendant la recherche de \"$cleanQuery\"."
+                    )
             }
         }
     }

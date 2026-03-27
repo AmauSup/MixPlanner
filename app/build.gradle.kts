@@ -39,10 +39,12 @@ android {
 
 dependencies {
     implementation("androidx.navigation:navigation-compose:2.9.7")
+    implementation("io.coil-kt:coil-compose:2.7.0")
 
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")
     implementation(libs.androidx.compose.foundation.layout)
+    implementation(libs.androidx.ui)
     ksp("androidx.room:room-compiler:2.8.4")
 
     implementation("androidx.compose.runtime:runtime-livedata:1.5.4")

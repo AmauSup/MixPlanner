@@ -1,54 +1,67 @@
 package com.supdevinci.mixplanner.ui.theme
 
-import android.app.Activity
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
+import androidx.compose.ui.graphics.Color
 
 private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
+    primary = MixOrange,
+    onPrimary = MixWhite,
 
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    secondary = MixOrangeDark,
+    onSecondary = MixWhite,
+
+    tertiary = MixOrangeLight,
+    onTertiary = MixTextDark,
+
+    background = MixOffWhite,
+    onBackground = MixTextDark,
+
+    surface = MixWhite,
+    onSurface = MixTextDark,
+
+    surfaceVariant = MixCream,
+    onSurfaceVariant = MixTextSoft,
+
+    outline = MixBorder,
+
+    error = MixError,
+    onError = MixWhite
+)
+
+private val DarkColorScheme = darkColorScheme(
+    primary = MixOrangeLight,
+    onPrimary = MixTextDark,
+
+    secondary = MixOrange,
+    onSecondary = MixWhite,
+
+    tertiary = MixOrangeDark,
+    onTertiary = MixWhite,
+
+    background = MixTextDark,
+    onBackground = MixWhite,
+
+    surface = Color(0xFF2A2A2A),
+    onSurface = MixWhite,
+
+    surfaceVariant = Color(0xFF3A2B21),
+    onSurfaceVariant = Color(0xFFFFD9BF),
+
+    outline = MixOrangeDark,
+
+    error = MixError,
+    onError = MixWhite
 )
 
 @Composable
 fun MixPlannerTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    darkTheme: Boolean = false,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
-    }
+    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
 
     MaterialTheme(
         colorScheme = colorScheme,

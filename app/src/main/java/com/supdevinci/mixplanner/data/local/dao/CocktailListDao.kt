@@ -57,6 +57,28 @@ interface CocktailListDao {
         deletedAt: Date
     )
 
+    @Query("""
+    UPDATE list_cocktail_cross_ref
+    SET quantity = :quantity, updatedAt = :updatedAt
+    WHERE listId = :listId AND savedCocktailId = :savedCocktailId
+""")
+    suspend fun updateCrossRefQuantity(
+        listId: Long,
+        savedCocktailId: Long,
+        quantity: Int,
+        updatedAt: Date
+    )
+
+    @Query("""
+    SELECT * FROM list_cocktail_cross_ref
+    WHERE listId = :listId AND savedCocktailId = :savedCocktailId
+    LIMIT 1
+""")
+    suspend fun getCrossRef(
+        listId: Long,
+        savedCocktailId: Long
+    ): ListCocktailCrossRef?
+
     @Transaction
     @Query("SELECT * FROM cocktail_lists WHERE deletedAt IS NULL ORDER BY createdAt DESC")
     fun getVisibleListsWithCocktails(): Flow<List<CocktailListWithCocktails>>

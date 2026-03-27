@@ -41,6 +41,9 @@ fun CocktailNavHost(
         composable(Routes.HOME) {
             HomeScreen(
                 onGoToSearch = { navController.navigate(Routes.SEARCH) },
+                onOpenDetails = { cocktailId ->
+                    navController.navigate("${Routes.DETAIL}/$cocktailId")
+                },
                 modifier = Modifier
             )
         }

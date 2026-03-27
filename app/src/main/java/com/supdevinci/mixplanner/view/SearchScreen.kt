@@ -23,13 +23,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supdevinci.mixplanner.model.Drink
 import com.supdevinci.mixplanner.viewmodel.SearchState
 import com.supdevinci.mixplanner.viewmodel.SearchViewModel
-
+import androidx.compose.foundation.layout.Row
 private enum class SearchMode {
     NAME,
     INGREDIENT
@@ -253,33 +252,41 @@ fun SearchScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            item {
-                OutlinedButton(
-                    onClick = {
-                        selectedAlcoholic = null
-                        selectedCategory = null
-                        selectedGlass = null
-                        viewModel.clearAllFilters()
-                    }
-                ) {
-                    Text("Réinitialiser")
-                }
-            }
         }
 
         item {
-            Button(
-                onClick = {
-                    viewModel.runSearch(
-                        query = query,
-                        byIngredient = (searchMode == SearchMode.INGREDIENT)
-                    )
-                }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Rechercher")
+                Button(
+                    onClick = {
+                        viewModel.runSearch(
+                            query = query,
+                            byIngredient = (searchMode == SearchMode.INGREDIENT)
+                        )
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text("Rechercher")
+                }
+
+                if (filtersVisible) {
+                    OutlinedButton(
+                        onClick = {
+                            selectedAlcoholic = null
+                            selectedCategory = null
+                            selectedGlass = null
+                            viewModel.clearAllFilters()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Réinitialiser")
+                    }
+                }
             }
         }
+
 
         when (val currentState = state.value) {
             SearchState.Idle -> {
@@ -323,7 +330,7 @@ fun SearchScreen(
                 item {
                     Text(
                         text = currentState.message,
-                        color = Color.Red
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             }

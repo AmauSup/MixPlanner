@@ -81,6 +81,11 @@ fun CocktailDetailScreen(
             style = MaterialTheme.typography.headlineMedium,
             modifier = Modifier.padding(top = 16.dp)
         )
+        CocktailImage(
+            imageUrl = drink.strDrinkThumb,
+            contentDescription = drink.strDrink,
+            modifier = Modifier.padding(top = 12.dp)
+        )
 
         if (!drink.strCategory.isNullOrBlank()) {
             Text(

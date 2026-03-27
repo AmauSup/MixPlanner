@@ -90,7 +90,7 @@ fun SplashScreen(
         Text(
             text = "Chargement : ${(progress.value * 100).toInt()}%",
             style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }

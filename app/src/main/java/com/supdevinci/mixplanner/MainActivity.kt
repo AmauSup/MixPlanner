@@ -22,6 +22,10 @@ import androidx.navigation.compose.rememberNavController
 import com.supdevinci.mixplanner.navigation.CocktailNavHost
 import com.supdevinci.mixplanner.navigation.Routes
 import com.supdevinci.mixplanner.viewmodel.SearchViewModel
+import androidx.compose.ui.Modifier
+import com.supdevinci.mixplanner.ui.theme.MixPlannerTheme
+import com.supdevinci.mixplanner.view.AppHeader
+import androidx.compose.material3.NavigationBarItemDefaults
 
 class MainActivity : ComponentActivity() {
 
@@ -31,16 +35,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MaterialTheme {
-                Surface {
+            MixPlannerTheme {
+                Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
                     val backStackEntry by navController.currentBackStackEntryAsState()
                     val currentRoute = backStackEntry?.destination?.route
 
                     Scaffold(
+                        topBar = {
+                            if (currentRoute != Routes.SPLASH) {
+                                AppHeader()
+                            }
+                        },
                         bottomBar = {
                             if (currentRoute != Routes.SPLASH) {
-                                NavigationBar {
+                                NavigationBar(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                ) {
                                     NavigationBarItem(
                                         selected = currentRoute == Routes.HOME,
                                         onClick = {
@@ -52,7 +63,14 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(Icons.Default.Home, contentDescription = "Accueil")
                                         },
-                                        label = { Text("Accueil") }
+                                        label = { Text("Accueil") },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                            indicatorColor = MaterialTheme.colorScheme.primary,
+                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     )
 
                                     NavigationBarItem(
@@ -65,7 +83,14 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(Icons.Default.Search, contentDescription = "Recherche")
                                         },
-                                        label = { Text("Recherche") }
+                                        label = { Text("Recherche") },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                            indicatorColor = MaterialTheme.colorScheme.primary,
+                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     )
 
                                     NavigationBarItem(
@@ -78,7 +103,14 @@ class MainActivity : ComponentActivity() {
                                         icon = {
                                             Icon(Icons.Default.List, contentDescription = "Mes listes")
                                         },
-                                        label = { Text("Mes listes") }
+                                        label = { Text("Mes listes") },
+                                        colors = NavigationBarItemDefaults.colors(
+                                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                            selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                            indicatorColor = MaterialTheme.colorScheme.primary,
+                                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
                                     )
                                 }
                             }
@@ -87,7 +119,7 @@ class MainActivity : ComponentActivity() {
                         CocktailNavHost(
                             navController = navController,
                             searchViewModel = searchViewModel,
-                            modifier = androidx.compose.ui.Modifier.padding(innerPadding)
+                            modifier = Modifier.padding(innerPadding)
                         )
                     }
                 }

@@ -2,6 +2,7 @@ package com.supdevinci.mixplanner.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.supdevinci.mixplanner.model.Drink
 import com.supdevinci.mixplanner.service.RetrofitInstance
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,37 +12,55 @@ import kotlinx.coroutines.launch
 
 class RandomCocktailViewModel : ViewModel() {
 
-    private val _state = MutableStateFlow<RandomCocktailState>(RandomCocktailState.Loading)
+    private val _state = MutableStateFlow<RandomCocktailState>(RandomCocktailState.Idle)
     val state: StateFlow<RandomCocktailState> = _state.asStateFlow()
 
     init {
-        getRandomCocktail()
+        getRandomCocktails()
     }
 
-    fun getRandomCocktail() {
+    fun getRandomCocktails() {
         viewModelScope.launch {
             _state.value = RandomCocktailState.Loading
 
             var lastErrorMessage = "Une erreur réseau est survenue"
 
-            repeat(3) { attempt ->
+            repeat(3) { globalAttempt ->
                 try {
-                    val response = RetrofitInstance.api.getRandomCocktail()
-                    val drink = response.drinks?.firstOrNull()
+                    val distinctDrinks = linkedSetOf<String>()
+                    val results = mutableListOf<Drink>()
 
-                    if (drink != null) {
-                        _state.value = RandomCocktailState.Success(drink)
+                    repeat(10) {
+                        val response = RetrofitInstance.api.getRandomCocktail()
+                        val drink = response.drinks?.firstOrNull()
+
+                        if (drink != null) {
+                            val id = drink.idDrink
+                            if (!id.isNullOrBlank() && distinctDrinks.add(id)) {
+                                results.add(drink)
+                            }
+                        }
+
+                        if (results.size == 3) {
+                            _state.value = RandomCocktailState.Success(results)
+                            return@launch
+                        }
+
+                        delay(150)
+                    }
+
+                    if (results.isNotEmpty()) {
+                        _state.value = RandomCocktailState.Success(results)
                         return@launch
                     } else {
                         lastErrorMessage = "Aucun cocktail trouvé"
                     }
                 } catch (e: Exception) {
-                    android.util.Log.e("RandomCocktailVM", "Tentative ${attempt + 1}", e)
                     lastErrorMessage = e.message ?: "Une erreur réseau est survenue"
                 }
 
-                if (attempt < 2) {
-                    delay(1200)
+                if (globalAttempt < 2) {
+                    delay(800)
                 }
             }
 
