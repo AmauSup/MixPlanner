@@ -78,7 +78,10 @@ fun CocktailScreen(
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(currentState.lists, key = { it.list.id }) { item ->
+                    items(
+                        currentState.lists,
+                        key = { it.list.id }
+                    ) { item ->
                         ListCard(
                             list = item,
                             onClick = { onListClick(item.list.id) },

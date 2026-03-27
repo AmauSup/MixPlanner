@@ -9,8 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -29,9 +27,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.supdevinci.mixplanner.R
 import com.supdevinci.mixplanner.viewmodel.RandomCocktailState
 import com.supdevinci.mixplanner.viewmodel.RandomCocktailViewModel
-import com.supdevinci.mixplanner.R
+
 @Composable
 fun HomeScreen(
     viewModel: RandomCocktailViewModel = viewModel(),
@@ -49,7 +48,8 @@ fun HomeScreen(
         Text(
             text = "Accueil",
             style = MaterialTheme.typography.headlineMedium,
-
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -66,10 +66,8 @@ fun HomeScreen(
                     Image(
                         painter = painterResource(id = R.drawable.logo_coup_),
                         contentDescription = "Chargement MixPlanner",
-                        modifier = Modifier.size(110.dp)
+                        modifier = Modifier.padding(bottom = 20.dp)
                     )
-
-                    Spacer(modifier = Modifier.height(20.dp))
 
                     CircularProgressIndicator()
 

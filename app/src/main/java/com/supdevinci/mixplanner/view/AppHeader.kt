@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -22,6 +23,8 @@ import com.supdevinci.mixplanner.R
 @Composable
 fun AppHeader(
     title: String = "MixPlanner",
+    darkMode: Boolean,
+    onDarkModeChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -33,19 +36,37 @@ fun AppHeader(
             .background(MaterialTheme.colorScheme.surfaceColorAtElevation(2.dp))
             .padding(horizontal = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Start
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.logo_coup_),
-            contentDescription = "Logo MixPlanner",
-            modifier = Modifier.size(30.dp)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.logo_coup_),
+                contentDescription = "Logo MixPlanner",
+                modifier = Modifier.size(30.dp)
+            )
 
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = 10.dp)
-        )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 10.dp)
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Dark",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(end = 8.dp)
+            )
+            Switch(
+                checked = darkMode,
+                onCheckedChange = onDarkModeChange
+            )
+        }
     }
 }

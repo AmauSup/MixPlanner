@@ -58,10 +58,10 @@ interface CocktailListDao {
     )
 
     @Query("""
-    UPDATE list_cocktail_cross_ref
-    SET quantity = :quantity, updatedAt = :updatedAt
-    WHERE listId = :listId AND savedCocktailId = :savedCocktailId
-""")
+        UPDATE list_cocktail_cross_ref
+        SET quantity = :quantity, updatedAt = :updatedAt
+        WHERE listId = :listId AND savedCocktailId = :savedCocktailId
+    """)
     suspend fun updateCrossRefQuantity(
         listId: Long,
         savedCocktailId: Long,
@@ -70,10 +70,10 @@ interface CocktailListDao {
     )
 
     @Query("""
-    SELECT * FROM list_cocktail_cross_ref
-    WHERE listId = :listId AND savedCocktailId = :savedCocktailId
-    LIMIT 1
-""")
+        SELECT * FROM list_cocktail_cross_ref
+        WHERE listId = :listId AND savedCocktailId = :savedCocktailId
+        LIMIT 1
+    """)
     suspend fun getCrossRef(
         listId: Long,
         savedCocktailId: Long

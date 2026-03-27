@@ -29,13 +29,13 @@ fun AddToListsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Ajouter à une ou plusieurs listes") },
+        title = { Text("Add to one or more lists") },
         text = {
             Column {
                 OutlinedTextField(
                     value = newListName,
                     onValueChange = { newListName = it },
-                    label = { Text("Nom de la nouvelle liste") },
+                    label = { Text("New list name") },
                     modifier = Modifier.fillMaxWidth()
                 )
 

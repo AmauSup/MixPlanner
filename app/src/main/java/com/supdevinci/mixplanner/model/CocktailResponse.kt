@@ -20,37 +20,7 @@ data class DrinkSummary(
     val idDrink: String?
 )
 
-data class IngredientListResponse(
-    val drinks: List<IngredientItem>?
-)
 
-data class IngredientItem(
-    val strIngredient1: String?
-)
-
-data class CategoryListResponse(
-    val drinks: List<CategoryItem>?
-)
-
-data class CategoryItem(
-    val strCategory: String?
-)
-
-data class GlassListResponse(
-    val drinks: List<GlassItem>?
-)
-
-data class GlassItem(
-    val strGlass: String?
-)
-
-data class AlcoholicListResponse(
-    val drinks: List<AlcoholicItem>?
-)
-
-data class AlcoholicItem(
-    val strAlcoholic: String?
-)
 
 data class IngredientResponse(
     val ingredients: List<Ingredient>?

@@ -2,12 +2,15 @@ package com.supdevinci.mixplanner.view
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -18,17 +21,7 @@ import androidx.compose.ui.unit.dp
 import com.supdevinci.mixplanner.data.local.entities.CocktailListEntity
 import com.supdevinci.mixplanner.model.Drink
 
-@Composable
-fun CocktailDetailScreen(
-    drink: Drink,
-    lists: List<CocktailListEntity>,
-    onBackToSearch: () -> Unit,
-    onAddToLists: (List<Long>) -> Unit,
-    onCreateList: (String) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    var showDialog by remember { mutableStateOf(false) }
-
+private fun cocktailIngredients(drink: Drink): List<String> {
     val ingredients = listOf(
         drink.strIngredient1 to drink.strMeasure1,
         drink.strIngredient2 to drink.strMeasure2,
@@ -45,7 +38,28 @@ fun CocktailDetailScreen(
         drink.strIngredient13 to drink.strMeasure13,
         drink.strIngredient14 to drink.strMeasure14,
         drink.strIngredient15 to drink.strMeasure15
-    ).filter { !it.first.isNullOrBlank() }
+    )
+
+    return ingredients
+        .filter { !it.first.isNullOrBlank() }
+        .map { (ingredient, measure) ->
+            val prefix = measure?.trim().orEmpty()
+            val name = ingredient?.trim().orEmpty()
+            listOf(prefix, name).filter { it.isNotBlank() }.joinToString(" ")
+        }
+}
+
+@Composable
+fun CocktailDetailScreen(
+    drink: Drink,
+    lists: List<CocktailListEntity>,
+    onBackToSearch: () -> Unit,
+    onAddToLists: (List<Long>) -> Unit,
+    onCreateList: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    val ingredients = remember(drink) { cocktailIngredients(drink) }
 
     if (showDialog) {
         AddToListsDialog(
@@ -59,74 +73,119 @@ fun CocktailDetailScreen(
         )
     }
 
-    Column(
+    LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
-        IconButton(onClick = onBackToSearch) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Retour"
+        item {
+            IconButton(onClick = onBackToSearch) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Retour"
+                )
+            }
+        }
+
+        item {
+            CocktailImage(
+                imageUrl = drink.strDrinkThumb,
+                contentDescription = drink.strDrink,
+                height = 260
             )
         }
 
-        Button(onClick = { showDialog = true }) {
-            Text("Ajouter à une liste")
-        }
-
-        Text(
-            text = drink.strDrink ?: "Cocktail inconnu",
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.padding(top = 16.dp)
-        )
-        CocktailImage(
-            imageUrl = drink.strDrinkThumb,
-            contentDescription = drink.strDrink,
-            modifier = Modifier.padding(top = 12.dp)
-        )
-
-        if (!drink.strCategory.isNullOrBlank()) {
+        item {
             Text(
-                text = "Catégorie : ${drink.strCategory}",
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
-
-        if (!drink.strAlcoholic.isNullOrBlank()) {
-            Text(
-                text = "Type : ${drink.strAlcoholic}",
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-
-        if (!drink.strGlass.isNullOrBlank()) {
-            Text(
-                text = "Verre : ${drink.strGlass}",
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
-
-        if (!drink.strInstructions.isNullOrBlank()) {
-            Text(
-                text = "Instructions : ${drink.strInstructions}",
-                modifier = Modifier.padding(top = 12.dp)
-            )
-        }
-
-        if (ingredients.isNotEmpty()) {
-            Text(
-                text = "Ingrédients",
-                style = MaterialTheme.typography.titleLarge,
+                text = drink.strDrink ?: "Cocktail inconnu",
+                style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(top = 16.dp)
             )
+        }
 
-            ingredients.forEach { (ingredient, measure) ->
-                Text(
-                    text = "- ${measure.orEmpty()} ${ingredient.orEmpty()}",
-                    modifier = Modifier.padding(top = 4.dp)
-                )
+        item {
+            Button(
+                onClick = { showDialog = true },
+                modifier = Modifier.padding(top = 12.dp)
+            ) {
+                Text("Ajouter à une liste")
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    if (!drink.strCategory.isNullOrBlank()) {
+                        Text("Catégorie : ${drink.strCategory}")
+                    }
+                    if (!drink.strAlcoholic.isNullOrBlank()) {
+                        Text(
+                            text = "Type : ${drink.strAlcoholic}",
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
+                    if (!drink.strGlass.isNullOrBlank()) {
+                        Text(
+                            text = "Verre : ${drink.strGlass}",
+                            modifier = Modifier.padding(top = 6.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Ingrédients",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    ingredients.forEach { ingredient ->
+                        Text(
+                            text = "• $ingredient",
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp, bottom = 24.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = "Instructions",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+
+                    Text(
+                        text = drink.strInstructions ?: "Aucune instruction disponible.",
+                        modifier = Modifier.padding(top = 10.dp)
+                    )
+                }
             }
         }
     }

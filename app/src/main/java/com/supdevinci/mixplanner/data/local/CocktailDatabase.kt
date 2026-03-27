@@ -12,7 +12,6 @@ import com.supdevinci.mixplanner.data.local.entities.CocktailListEntity
 import com.supdevinci.mixplanner.data.local.entities.ListCocktailCrossRef
 import com.supdevinci.mixplanner.data.local.entities.SavedCocktailEntity
 
-
 @Database(
     entities = [
         CocktailEntity::class,
@@ -20,7 +19,7 @@ import com.supdevinci.mixplanner.data.local.entities.SavedCocktailEntity
         SavedCocktailEntity::class,
         ListCocktailCrossRef::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

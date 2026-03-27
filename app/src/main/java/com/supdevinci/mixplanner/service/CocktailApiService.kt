@@ -13,7 +13,6 @@ import com.supdevinci.mixplanner.model.IngredientListResponse
 import com.supdevinci.mixplanner.model.IngredientResponse
 import retrofit2.http.GET
 import retrofit2.http.Query
-
 interface CocktailApiService {
 
     @GET("random.php")
@@ -57,25 +56,6 @@ interface CocktailApiService {
         @Query("g") glass: String
     ): CocktailFilterResponse
 
-    @GET("list.php")
-    suspend fun getIngredientList(
-        @Query("i") value: String = "list"
-    ): IngredientListResponse
-
-    @GET("list.php")
-    suspend fun getCategoryList(
-        @Query("c") value: String = "list"
-    ): CategoryListResponse
-
-    @GET("list.php")
-    suspend fun getGlassList(
-        @Query("g") value: String = "list"
-    ): GlassListResponse
-
-    @GET("list.php")
-    suspend fun getAlcoholicList(
-        @Query("a") value: String = "list"
-    ): AlcoholicListResponse
 
     @GET("search.php")
     suspend fun searchIngredientByName(
@@ -86,4 +66,16 @@ interface CocktailApiService {
     suspend fun getIngredientById(
         @Query("iid") id: String
     ): IngredientResponse
+
+    @GET("list.php?a=list")
+    suspend fun getAlcoholicList(): AlcoholicListResponse
+
+    @GET("list.php?c=list")
+    suspend fun getCategoryList(): CategoryListResponse
+
+    @GET("list.php?g=list")
+    suspend fun getGlassList(): GlassListResponse
+
+    @GET("list.php?i=list")
+    suspend fun getIngredientList(): IngredientListResponse
 }

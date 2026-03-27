@@ -1,6 +1,8 @@
 package com.supdevinci.mixplanner.view
 
-import androidx.compose.foundation.background
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,12 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.background
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,16 +27,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.supdevinci.mixplanner.data.local.model.CocktailListWithCocktails
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.supdevinci.mixplanner.viewmodel.CocktailListsViewModel
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 
 @Composable
 fun ListDetailScreen(
@@ -40,13 +46,16 @@ fun ListDetailScreen(
     onBack: () -> Unit,
     onCocktailClick: (String) -> Unit,
     modifier: Modifier = Modifier
-
 ) {
+    val context = LocalContext.current
     val viewModel: CocktailListsViewModel = viewModel()
     val ingredients by viewModel.aggregatedIngredients.collectAsStateWithLifecycle()
+    val checkedItems = remember { mutableStateMapOf<String, Boolean>() }
+
     LaunchedEffect(list.list.id) {
         viewModel.loadIngredientsForList(list.list.id, list.cocktails)
     }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -75,11 +84,12 @@ fun ListDetailScreen(
             items(list.cocktails, key = { it.id }) { cocktail ->
                 var quantity by remember { mutableStateOf(0) }
 
-                LaunchedEffect(cocktail.id, list.list.id){
+                LaunchedEffect(cocktail.id, list.list.id) {
                     viewModel.getQuantity(list.list.id, cocktail.id) {
                         quantity = it
                     }
                 }
+
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -92,6 +102,7 @@ fun ListDetailScreen(
                         text = cocktail.name,
                         style = MaterialTheme.typography.titleMedium
                     )
+
                     CocktailImage(
                         imageUrl = cocktail.thumbUrl,
                         contentDescription = cocktail.name,
@@ -153,6 +164,7 @@ fun ListDetailScreen(
                     }
                 }
             }
+
             item {
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -163,15 +175,47 @@ fun ListDetailScreen(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                Button(
+                    onClick = {
+                        val text = ingredients.toSortedMap()
+                            .entries
+                            .joinToString("\n") { "${it.key} x${it.value}" }
+
+                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        clipboard.setPrimaryClip(ClipData.newPlainText("ingredients", text))
+                    }
+                ) {
+                    Text("Copier la liste")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
                 if (ingredients.isEmpty()) {
                     Text("Chargement des ingrédients...")
                 } else {
                     Column {
                         ingredients.toSortedMap().forEach { (ingredient, count) ->
-                            Text(
-                                text = "- $ingredient x$count",
-                                modifier = Modifier.padding(vertical = 2.dp)
-                            )
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        checkedItems[ingredient] = !(checkedItems[ingredient] ?: false)
+                                    }
+                                    .padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Checkbox(
+                                    checked = checkedItems[ingredient] ?: false,
+                                    onCheckedChange = {
+                                        checkedItems[ingredient] = it
+                                    }
+                                )
+
+                                Text(
+                                    text = "$ingredient x$count",
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
                         }
                     }
                 }

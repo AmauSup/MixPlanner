@@ -15,6 +15,7 @@ data class SavedCocktailEntity(
     val alcoholic: String? = null,
     val glass: String? = null,
     val instructions: String? = null,
+    val isFavorite: Boolean = false,
     val createdAt: Date,
     val updatedAt: Date? = null,
     val deletedAt: Date? = null

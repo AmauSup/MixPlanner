@@ -27,16 +27,16 @@ class RandomCocktailViewModel : ViewModel() {
 
             repeat(3) { globalAttempt ->
                 try {
-                    val distinctDrinks = linkedSetOf<String>()
+                    val distinctIds = linkedSetOf<String>()
                     val results = mutableListOf<Drink>()
 
-                    repeat(10) {
+                    repeat(12) {
                         val response = RetrofitInstance.api.getRandomCocktail()
                         val drink = response.drinks?.firstOrNull()
 
                         if (drink != null) {
                             val id = drink.idDrink
-                            if (!id.isNullOrBlank() && distinctDrinks.add(id)) {
+                            if (!id.isNullOrBlank() && distinctIds.add(id)) {
                                 results.add(drink)
                             }
                         }
@@ -46,7 +46,7 @@ class RandomCocktailViewModel : ViewModel() {
                             return@launch
                         }
 
-                        delay(150)
+                        delay(120)
                     }
 
                     if (results.isNotEmpty()) {
@@ -60,7 +60,7 @@ class RandomCocktailViewModel : ViewModel() {
                 }
 
                 if (globalAttempt < 2) {
-                    delay(800)
+                    delay(700)
                 }
             }
 

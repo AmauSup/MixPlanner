@@ -18,7 +18,6 @@ import com.supdevinci.mixplanner.view.SplashScreen
 import com.supdevinci.mixplanner.viewmodel.CocktailListsState
 import com.supdevinci.mixplanner.viewmodel.CocktailListsViewModel
 import com.supdevinci.mixplanner.viewmodel.SearchViewModel
-import kotlinx.coroutines.delay
 
 @Composable
 fun CocktailNavHost(

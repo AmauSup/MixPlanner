@@ -9,12 +9,12 @@ import com.supdevinci.mixplanner.data.local.entities.ListCocktailCrossRef
 import com.supdevinci.mixplanner.data.local.entities.SavedCocktailEntity
 import com.supdevinci.mixplanner.data.local.model.CocktailListWithCocktails
 import com.supdevinci.mixplanner.model.Drink
+import com.supdevinci.mixplanner.service.RetrofitInstance
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.Date
-import com.supdevinci.mixplanner.service.RetrofitInstance
 
 class CocktailListsViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -26,10 +26,9 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
     private val _visibleLists = MutableStateFlow<List<CocktailListEntity>>(emptyList())
     val visibleLists: StateFlow<List<CocktailListEntity>> = _visibleLists.asStateFlow()
 
-    private val _aggregatedIngredients =
-        MutableStateFlow<Map<String, Int>>(emptyMap())
-    val aggregatedIngredients: StateFlow<Map<String, Int>> =
-        _aggregatedIngredients.asStateFlow()
+    private val _aggregatedIngredients = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val aggregatedIngredients: StateFlow<Map<String, Int>> = _aggregatedIngredients.asStateFlow()
+
     init {
         viewModelScope.launch {
             dao.getVisibleListsWithCocktails().collect { lists ->
@@ -39,81 +38,10 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
                 }
             }
         }
+
         viewModelScope.launch {
             dao.getVisibleLists().collect { lists ->
                 _visibleLists.value = lists
-            }
-        }
-
-    }
-
-    fun addDrinkToLists(listIds: List<Long>, drink: Drink) {
-        val remoteId = drink.idDrink
-        val name = drink.strDrink
-
-        if (remoteId.isNullOrBlank() || name.isNullOrBlank()) {
-            _state.value = CocktailListsState.Error("Cocktail invalide")
-            return
-        }
-
-        if (listIds.isEmpty()) {
-            _state.value = CocktailListsState.Error("Choisis au moins une liste")
-            return
-        }
-
-        viewModelScope.launch {
-            try {
-                val now = Date()
-
-                val existing = dao.getSavedCocktailByRemoteId(remoteId)
-
-                val savedCocktailId = if (existing != null) {
-                    dao.updateSavedCocktail(
-                        existing.copy(
-                            name = name,
-                            thumbUrl = drink.strDrinkThumb,
-                            category = drink.strCategory,
-                            alcoholic = drink.strAlcoholic,
-                            glass = drink.strGlass,
-                            instructions = drink.strInstructions,
-                            updatedAt = now,
-                            deletedAt = null
-                        )
-                    )
-                    existing.id
-                } else {
-                    dao.insertSavedCocktail(
-                        SavedCocktailEntity(
-                            remoteId = remoteId,
-                            name = name,
-                            thumbUrl = drink.strDrinkThumb,
-                            category = drink.strCategory,
-                            alcoholic = drink.strAlcoholic,
-                            glass = drink.strGlass,
-                            instructions = drink.strInstructions,
-                            createdAt = now,
-                            updatedAt = now,
-                            deletedAt = null
-                        )
-                    )
-                }
-
-                listIds.forEach { listId ->
-                    dao.insertCrossRef(
-                        ListCocktailCrossRef(
-                            listId = listId,
-                            savedCocktailId = savedCocktailId,
-                            quantity = 1,
-                            createdAt = now,
-                            updatedAt = now,
-                            deletedAt = null
-                        )
-                    )
-                }
-            } catch (e: Exception) {
-                _state.value = CocktailListsState.Error(
-                    e.message ?: "Erreur lors de l'ajout du cocktail aux listes"
-                )
             }
         }
     }
@@ -172,12 +100,17 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    fun addDrinkToList(listId: Long, drink: Drink) {
+    fun addDrinkToLists(listIds: List<Long>, drink: Drink) {
         val remoteId = drink.idDrink
         val name = drink.strDrink
 
         if (remoteId.isNullOrBlank() || name.isNullOrBlank()) {
             _state.value = CocktailListsState.Error("Cocktail invalide")
+            return
+        }
+
+        if (listIds.isEmpty()) {
+            _state.value = CocktailListsState.Error("Choisis au moins une liste")
             return
         }
 
@@ -196,7 +129,8 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
                             alcoholic = drink.strAlcoholic,
                             glass = drink.strGlass,
                             instructions = drink.strInstructions,
-                            updatedAt = now
+                            updatedAt = now,
+                            deletedAt = null
                         )
                     )
                     existing.id
@@ -210,6 +144,7 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
                             alcoholic = drink.strAlcoholic,
                             glass = drink.strGlass,
                             instructions = drink.strInstructions,
+                            isFavorite = false,
                             createdAt = now,
                             updatedAt = now,
                             deletedAt = null
@@ -217,23 +152,36 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
                     )
                 }
 
-                dao.insertCrossRef(
-                    ListCocktailCrossRef(
-                        listId = listId,
-                        savedCocktailId = savedCocktailId,
-                        quantity = 1,
-                        createdAt = now,
-                        updatedAt = now,
-                        deletedAt = null
-                    )
-                )
+                listIds.forEach { listId ->
+                    val crossRef = dao.getCrossRef(listId, savedCocktailId)
+                    if (crossRef == null) {
+                        dao.insertCrossRef(
+                            ListCocktailCrossRef(
+                                listId = listId,
+                                savedCocktailId = savedCocktailId,
+                                quantity = 1,
+                                createdAt = now,
+                                updatedAt = now,
+                                deletedAt = null
+                            )
+                        )
+                    } else {
+                        dao.updateCrossRefQuantity(
+                            listId = listId,
+                            savedCocktailId = savedCocktailId,
+                            quantity = crossRef.quantity + 1,
+                            updatedAt = now
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 _state.value = CocktailListsState.Error(
-                    e.message ?: "Erreur lors de l'ajout du cocktail à la liste"
+                    e.message ?: "Erreur lors de l'ajout du cocktail aux listes"
                 )
             }
         }
     }
+
     fun getListById(listId: Long): CocktailListWithCocktails? {
         val current = _state.value
         return if (current is CocktailListsState.Success) {
@@ -243,53 +191,10 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    fun loadIngredientsForList(listId: Long,drinks: List<SavedCocktailEntity>) {
+    fun getQuantity(listId: Long, savedCocktailId: Long, onResult: (Int) -> Unit) {
         viewModelScope.launch {
-            val counts = mutableMapOf<String, Int>()
-
-            for (cocktail in drinks) {
-                val id = cocktail.remoteId
-
-                if (id.isBlank()) continue
-
-                try {
-                    val response = RetrofitInstance.api.getCocktailById(id)
-                    val drink = response.drinks?.firstOrNull() ?: continue
-
-                    val ingredients = listOf(
-                        drink.strIngredient1,
-                        drink.strIngredient2,
-                        drink.strIngredient3,
-                        drink.strIngredient4,
-                        drink.strIngredient5,
-                        drink.strIngredient6,
-                        drink.strIngredient7,
-                        drink.strIngredient8,
-                        drink.strIngredient9,
-                        drink.strIngredient10,
-                        drink.strIngredient11,
-                        drink.strIngredient12,
-                        drink.strIngredient13,
-                        drink.strIngredient14,
-                        drink.strIngredient15
-                    )
-
-                    ingredients
-                        .filterNotNull()
-                        .map { it.trim() }
-                        .filter { it.isNotBlank() }
-                        .forEach { ingredient ->
-                            val crossRef = dao.getCrossRef(listId, cocktail.id)
-                            val quantity = crossRef?.quantity ?: 1
-
-                            counts[ingredient] = (counts[ingredient] ?: 0) + quantity
-                        }
-
-                } catch (_: Exception) {
-                }
-            }
-
-            _aggregatedIngredients.value = counts
+            val crossRef = dao.getCrossRef(listId, savedCocktailId)
+            onResult(crossRef?.quantity ?: 0)
         }
     }
 
@@ -331,10 +236,50 @@ class CocktailListsViewModel(application: Application) : AndroidViewModel(applic
         }
     }
 
-    fun getQuantity(listId: Long, savedCocktailId: Long, onResult: (Int) -> Unit) {
+    fun loadIngredientsForList(listId: Long, drinks: List<SavedCocktailEntity>) {
         viewModelScope.launch {
-            val crossRef = dao.getCrossRef(listId, savedCocktailId)
-            onResult(crossRef?.quantity ?: 0)
+            val counts = mutableMapOf<String, Int>()
+
+            for (cocktail in drinks) {
+                val id = cocktail.remoteId
+                if (id.isBlank()) continue
+
+                try {
+                    val response = RetrofitInstance.api.getCocktailById(id)
+                    val drink = response.drinks?.firstOrNull() ?: continue
+                    val crossRef = dao.getCrossRef(listId, cocktail.id)
+                    val quantity = crossRef?.quantity ?: 1
+
+                    val ingredients = listOf(
+                        drink.strIngredient1,
+                        drink.strIngredient2,
+                        drink.strIngredient3,
+                        drink.strIngredient4,
+                        drink.strIngredient5,
+                        drink.strIngredient6,
+                        drink.strIngredient7,
+                        drink.strIngredient8,
+                        drink.strIngredient9,
+                        drink.strIngredient10,
+                        drink.strIngredient11,
+                        drink.strIngredient12,
+                        drink.strIngredient13,
+                        drink.strIngredient14,
+                        drink.strIngredient15
+                    )
+
+                    ingredients
+                        .filterNotNull()
+                        .map { it.trim() }
+                        .filter { it.isNotBlank() }
+                        .forEach { ingredient ->
+                            counts[ingredient] = (counts[ingredient] ?: 0) + quantity
+                        }
+                } catch (_: Exception) {
+                }
+            }
+
+            _aggregatedIngredients.value = counts
         }
     }
 }

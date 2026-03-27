@@ -24,6 +24,9 @@ class SearchViewModel : ViewModel() {
     private val _glassOptions = MutableStateFlow<List<String>>(emptyList())
     val glassOptions: StateFlow<List<String>> = _glassOptions.asStateFlow()
 
+    private val _suggestions = MutableStateFlow<List<String>>(emptyList())
+    val suggestions: StateFlow<List<String>> = _suggestions.asStateFlow()
+
     private var currentBaseResults: List<Drink> = emptyList()
     private var allCatalog: List<Drink> = emptyList()
 
@@ -31,8 +34,34 @@ class SearchViewModel : ViewModel() {
     private var currentCategoryFilter: String? = null
     private var currentGlassFilter: String? = null
 
+
+    private var allIngredients: List<String> = emptyList()
     init {
         loadFilterOptions()
+        preloadCatalogForSuggestions()
+        preloadIngredientsForSuggestions()
+    }
+    private fun preloadIngredientsForSuggestions() {
+        viewModelScope.launch {
+            try {
+                allIngredients = RetrofitInstance.api.getIngredientList()
+                    .drinks
+                    .orEmpty()
+                    .mapNotNull { it.strIngredient1 }
+                    .distinct()
+                    .sorted()
+            } catch (_: Exception) {
+                allIngredients = emptyList()
+            }
+        }
+    }
+    private fun preloadCatalogForSuggestions() {
+        viewModelScope.launch {
+            try {
+                ensureCatalogLoaded()
+            } catch (_: Exception) {
+            }
+        }
     }
 
     private fun loadFilterOptions() {
@@ -67,6 +96,31 @@ class SearchViewModel : ViewModel() {
                 Log.e("SearchViewModel", "Erreur loadFilterOptions", e)
             }
         }
+    }
+
+    fun updateSuggestions(query: String, byIngredient: Boolean) {
+        if (query.length < 2) {
+            _suggestions.value = emptyList()
+            return
+        }
+
+        _suggestions.value = if (byIngredient) {
+            allIngredients
+                .filter { it.contains(query, ignoreCase = true) }
+                .distinct()
+                .sorted()
+                .take(5)
+        } else {
+            allCatalog
+                .mapNotNull { it.strDrink }
+                .filter { it.contains(query, ignoreCase = true) }
+                .distinct()
+                .sorted()
+                .take(5)
+        }
+    }
+    fun clearSuggestions() {
+        _suggestions.value = emptyList()
     }
 
     fun runSearch(query: String, byIngredient: Boolean) {
@@ -129,7 +183,7 @@ class SearchViewModel : ViewModel() {
                         "Aucun cocktail ne correspond à \"$cleanQuery\"."
                     )
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 _state.value = SearchState.Error(
                     "Erreur réseau pendant la recherche de \"$cleanQuery\"."
                 )
@@ -179,10 +233,10 @@ class SearchViewModel : ViewModel() {
                         "Des cocktails ont été trouvés pour \"$cleanQuery\", mais leurs détails n’ont pas pu être chargés."
                     )
                 }
-            } catch (e: Exception) {
-                    _state.value = SearchState.Error(
-                        "Erreur réseau pendant la recherche de \"$cleanQuery\"."
-                    )
+            } catch (_: Exception) {
+                _state.value = SearchState.Error(
+                    "Erreur réseau pendant la recherche de \"$cleanQuery\"."
+                )
             }
         }
     }
@@ -200,8 +254,7 @@ class SearchViewModel : ViewModel() {
             }
         }
 
-        allCatalog = results
-            .distinctBy { it.idDrink ?: it.strDrink.orEmpty() }
+        allCatalog = results.distinctBy { it.idDrink ?: it.strDrink.orEmpty() }
     }
 
     private fun normalizeIngredientQuery(query: String): String {
@@ -250,52 +303,6 @@ class SearchViewModel : ViewModel() {
         }
     }
 
-    fun loadCocktailDetails(id: String?) {
-        if (id.isNullOrBlank()) {
-            _state.value = SearchState.Error("Impossible d'ouvrir la fiche cocktail")
-            return
-        }
-
-        val current = _state.value
-        val currentFiltered =
-            if (current is SearchState.Success) current.filteredDrinks else emptyList()
-
-        viewModelScope.launch {
-            try {
-                val response = RetrofitInstance.api.getCocktailById(id)
-                val detailedDrink = response.drinks?.firstOrNull()
-
-                if (detailedDrink != null) {
-                    _state.value = SearchState.Success(
-                        allDrinks = currentBaseResults,
-                        filteredDrinks = currentFiltered,
-                        selectedDrink = detailedDrink
-                    )
-                } else {
-                    _state.value = SearchState.Error("Fiche cocktail introuvable")
-                }
-            } catch (e: Exception) {
-                _state.value = SearchState.Error(
-                    e.message ?: "Erreur réseau pendant le chargement de la fiche"
-                )
-            }
-        }
-    }
-
-    fun selectDrink(drink: Drink) {
-        val current = _state.value
-        if (current is SearchState.Success) {
-            _state.value = current.copy(selectedDrink = drink)
-        }
-    }
-
-    fun clearDetails() {
-        val current = _state.value
-        if (current is SearchState.Success) {
-            _state.value = current.copy(selectedDrink = null)
-        }
-    }
-
     private fun clearFiltersOnly() {
         currentAlcoholicFilter = null
         currentCategoryFilter = null
@@ -339,4 +346,6 @@ class SearchViewModel : ViewModel() {
         val filter = currentGlassFilter ?: return true
         return drink.strGlass.equals(filter, ignoreCase = true)
     }
+
+
 }

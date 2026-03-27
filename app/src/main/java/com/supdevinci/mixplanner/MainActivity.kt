@@ -13,19 +13,22 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.supdevinci.mixplanner.navigation.CocktailNavHost
 import com.supdevinci.mixplanner.navigation.Routes
-import com.supdevinci.mixplanner.viewmodel.SearchViewModel
-import androidx.compose.ui.Modifier
 import com.supdevinci.mixplanner.ui.theme.MixPlannerTheme
 import com.supdevinci.mixplanner.view.AppHeader
-import androidx.compose.material3.NavigationBarItemDefaults
+import com.supdevinci.mixplanner.viewmodel.SearchViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -35,7 +38,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            MixPlannerTheme {
+            var darkMode by rememberSaveable { mutableStateOf(false) }
+
+            MixPlannerTheme(darkTheme = darkMode) {
                 Surface(color = MaterialTheme.colorScheme.background) {
                     val navController = rememberNavController()
                     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -44,7 +49,10 @@ class MainActivity : ComponentActivity() {
                     Scaffold(
                         topBar = {
                             if (currentRoute != Routes.SPLASH) {
-                                AppHeader()
+                                AppHeader(
+                                    darkMode = darkMode,
+                                    onDarkModeChange = { darkMode = it }
+                                )
                             }
                         },
                         bottomBar = {
